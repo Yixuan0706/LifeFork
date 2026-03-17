@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDecision } from '../contexts/DecisionContext';
 import { generateClarificationAndQuestions } from '../services/geminiService';
 import { motion } from 'motion/react';
@@ -8,8 +7,7 @@ import { Loader2, ArrowRight } from 'lucide-react';
 export default function LandingPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { setDecision, setClarification } = useDecision();
-  const navigate = useNavigate();
+  const { setDecision, setClarification, setStep } = useDecision();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +18,7 @@ export default function LandingPage() {
       const result = await generateClarificationAndQuestions(input);
       setDecision(input);
       setClarification(result);
-      navigate('/questions');
+      setStep('questions');
     } catch (error) {
       console.error("Failed to generate questions:", error);
       // Handle error state here if needed
