@@ -20,25 +20,24 @@ export default function LandingPage() {
       setClarification(result);
       setStep('questions');
     } catch (error) {
-      console.error("Failed to generate questions:", error);
-      // Handle error state here if needed
+      console.error('Failed to generate questions:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const exampleInputs = [
-    "我应该去读博吗？",
-    "我应该换个行业吗？",
-    "我应该去另一个国家生活吗？"
+    '我应该去读博吗？',
+    '我应该换个行业吗？',
+    '我应该去另一个国家生活吗？'
   ];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
         className="max-w-2xl w-full space-y-12 text-center"
       >
         <div className="space-y-4">
