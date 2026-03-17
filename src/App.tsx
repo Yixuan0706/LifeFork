@@ -1,24 +1,14 @@
-import LandingPage from './pages/LandingPage';
-import LetterPage from './pages/LetterPage';
-import QuestionsPage from './pages/QuestionsPage';
-import ResultsPage from './pages/ResultsPage';
 import { DecisionProvider, useDecision } from './contexts/DecisionContext';
 
 function AppRouter() {
   const { step } = useDecision();
 
-  switch (step) {
-    case 'landing':
-      return <LandingPage />;
-    case 'letter':
-      return <LetterPage />;
-    case 'questions':
-      return <QuestionsPage />;
-    case 'results':
-      return <ResultsPage />;
-    default:
-      return <LandingPage />;
-  }
+  return (
+    <div style={{ padding: 40, color: '#000', background: '#fff' }}>
+      <h1>App 正常运行</h1>
+      <p>当前 step: {step}</p>
+    </div>
+  );
 }
 
 export default function App() {
