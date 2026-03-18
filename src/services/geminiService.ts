@@ -33,13 +33,13 @@ export interface ReflectionResponse {
   futureSelf: string;
 }
 
-async function callChatApi(messages: Array<{ role: string; content: string }>) {
+async function callChatApi(prompt: string) {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ message: prompt }),
   });
 
   if (!res.ok) {
@@ -47,8 +47,7 @@ async function callChatApi(messages: Array<{ role: string; content: string }>) {
     throw new Error(`API error: ${res.status} ${text}`);
   }
 
-  const data = await res.json();
-  return data;
+  return await res.json();
 }
 
 function extractTextFromResponse(data: any): string {
@@ -89,11 +88,11 @@ JSON 结构必须是：
 5. 全部使用简体中文
 6. 输出必须是合法 JSON`;
 
-  const data = await callChatApi([
-    { role: "system", content: "你是一个擅长结构化输出的中文人生决策助手。" },
-    { role: "user", content: prompt },
-  ]);
+  const fullPrompt = `你是一个擅长结构化输出的中文人生决策助手。
 
+${prompt}`;
+
+  const data = await callChatApi(fullPrompt);
   const text = extractTextFromResponse(data);
 
   try {
@@ -147,11 +146,11 @@ JSON 结构必须是：
 5. futureSelf 开头必须是“亲爱的现在的我：”
 6. 输出必须是合法 JSON`;
 
-  const data = await callChatApi([
-    { role: "system", content: "你是一个擅长结构化输出、语气平静而富有哲理的中文人生决策助手。" },
-    { role: "user", content: prompt },
-  ]);
+  const fullPrompt = `你是一个擅长结构化输出、语气平静而富有哲理的中文人生决策助手。
 
+${prompt}`;
+
+  const data = await callChatApi(fullPrompt);
   const text = extractTextFromResponse(data);
 
   try {
