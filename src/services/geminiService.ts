@@ -101,28 +101,34 @@ ${prompt}`;
   }
 }
 
+export type ReflectionResponse = {
+  summary: string;
+  insights: string[];
+  suggestions: string[];
+  closing: string;
+};
+
 export async function generateReflection(
   decision: string,
   answers: Record<string, any>
 ): Promise<ReflectionResponse> {
-  const prompt = `用户正在反思这个决定：“${decision}”。
+  const res = await fetch('/api/reflection', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      decision,
+      answers,
+    }),
+  });
 
-回答如下：
-${JSON.stringify(answers, null, 2)}
+  const result = await res.json();
+  console.log('[generateReflection] /api/reflection result:', result);
 
-请返回 JSON，结构同前。`;
-
-  const fullPrompt = `你是一个深思熟虑的中文决策助手。
-
-${prompt}`;
-
-  const data = await callChatApi(fullPrompt);
-  const text = extractTextFromResponse(data);
-
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error("Reflection parse failed:", text);
-    throw new Error("返回不是合法 JSON");
+  if (!result.success) {
+    throw new Error(result.error || '生成洞察失败');
   }
+
+  return result.data;
 }
