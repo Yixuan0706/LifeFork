@@ -10,37 +10,45 @@ export default function LandingPage() {
   const { setDecision, setClarification, setStep } = useDecision();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  e.preventDefault();
+  if (!input.trim() || isLoading) return;
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: input }),
-      });
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: input }),
+    });
 
-      const result = await res.json();
-      console.log('[LandingPage] /api/chat result:', result);
+    const result = await res.json();
+    console.log('[LandingPage] /api/chat result:', result);
 
-      if (!result.success) {
-        console.error('[LandingPage] 接口返回失败:', result.error, result.raw);
-        return;
-      }
-
-      setDecision(input);
-      setClarification(result.data);
-      setStep('questions');
-    } catch (error) {
-      console.error('[LandingPage] Failed to generate questions:', error);
-    } finally {
-      setIsLoading(false);
+    if (!result.success) {
+      console.error('[LandingPage] 接口返回失败:', result.error, result.raw);
+      return;
     }
-  };
+
+    console.log('[LandingPage] 准备 setDecision');
+    setDecision(input);
+
+    console.log('[LandingPage] 准备 setClarification');
+    setClarification(result.data);
+
+    console.log('[LandingPage] 准备 setStep -> questions');
+    setStep('questions');
+
+    console.log('[LandingPage] setStep 已调用');
+  } catch (error) {
+    console.error('[LandingPage] Failed to generate questions:', error);
+  } finally {
+    console.log('[LandingPage] finally -> setIsLoading(false)');
+    setIsLoading(false);
+  }
+};
 
   const exampleInputs = [
     '我应该去读博吗？',
