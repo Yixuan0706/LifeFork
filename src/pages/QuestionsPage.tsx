@@ -1,27 +1,33 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDecision } from '../contexts/DecisionContext';
 import { generateReflection } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, ArrowRight, ArrowLeft, Check } from 'lucide-react';
 
 export default function QuestionsPage() {
-  const { decision, clarification, answers, setAnswers, setReflection } = useDecision();
-  const navigate = useNavigate();
+  const {
+    decision,
+    clarification,
+    answers,
+    setAnswers,
+    setReflection,
+    setStep,
+  } = useDecision();
+
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   if (!clarification) {
-    navigate('/');
+    setStep('landing');
     return null;
   }
 
-  const questions = clarification.questions;
-  const totalSteps = questions.length + 1; // +1 for clarification step
+  const questions = clarification.questions || [];
+  const totalSteps = questions.length + 1;
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     } else {
       handleSubmit();
     }
@@ -29,9 +35,9 @@ export default function QuestionsPage() {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     } else {
-      navigate('/');
+      setStep('landing');
     }
   };
 
@@ -44,9 +50,9 @@ export default function QuestionsPage() {
     try {
       const result = await generateReflection(decision, answers);
       setReflection(result);
-      navigate('/results');
+      setStep('results');
     } catch (error) {
-      console.error("Failed to generate reflection:", error);
+      console.error('Failed to generate reflection:', error);
     } finally {
       setIsLoading(false);
     }
@@ -64,10 +70,13 @@ export default function QuestionsPage() {
         <h2 className="text-3xl font-medium text-stone-900 font-serif">让我们理清你的思绪。</h2>
         <p className="text-lg text-stone-500">基于你的分享，这似乎是你正在考虑的几条道路：</p>
       </div>
-      
+
       <div className="space-y-4">
         {clarification.options.map((option, idx) => (
-          <div key={idx} className="p-6 bg-white border border-stone-200 rounded-2xl shadow-sm flex items-start space-x-4">
+          <div
+            key={idx}
+            className="p-6 bg-white border border-stone-200 rounded-2xl shadow-sm flex items-start space-x-4"
+          >
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-medium font-serif">
               {String.fromCharCode(65 + idx)}
             </div>
@@ -75,7 +84,7 @@ export default function QuestionsPage() {
           </div>
         ))}
       </div>
-      
+
       <div className="pt-8 flex justify-end">
         <button
           onClick={handleNext}
@@ -101,24 +110,30 @@ export default function QuestionsPage() {
         className="space-y-8"
       >
         <div className="space-y-4">
-          <span className="text-sm font-medium text-stone-400 uppercase tracking-wider">问题 {index + 1} / {questions.length}</span>
-          <h2 className="text-3xl font-medium text-stone-900 leading-tight font-serif">{question.text}</h2>
+          <span className="text-sm font-medium text-stone-400 uppercase tracking-wider">
+            问题 {index + 1} / {questions.length}
+          </span>
+          <h2 className="text-3xl font-medium text-stone-900 leading-tight font-serif">
+            {question.title}
+          </h2>
         </div>
 
         <div className="space-y-3">
-          {question.type === 'multiple_choice' || question.type === 'single_choice' ? (
-            question.choices?.map((choice, idx) => {
-              const isSelected = question.type === 'multiple_choice' 
-                ? (currentAnswer || []).includes(choice)
-                : currentAnswer === choice;
+          {question.type === 'multi' || question.type === 'single' ? (
+            question.options?.map((choice, idx) => {
+              const isSelected =
+                question.type === 'multi'
+                  ? (currentAnswer || []).includes(choice)
+                  : currentAnswer === choice;
 
               return (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => {
-                    if (question.type === 'multiple_choice') {
+                    if (question.type === 'multi') {
                       const current = currentAnswer || [];
-                      const updated = isSelected 
+                      const updated = isSelected
                         ? current.filter((c: string) => c !== choice)
                         : [...current, choice];
                       handleAnswerChange(question.id, updated);
@@ -127,8 +142,8 @@ export default function QuestionsPage() {
                     }
                   }}
                   className={`w-full text-left p-6 rounded-2xl border transition-all flex items-center justify-between ${
-                    isSelected 
-                      ? 'bg-stone-800 border-stone-800 text-white' 
+                    isSelected
+                      ? 'bg-stone-800 border-stone-800 text-white'
                       : 'bg-white border-stone-200 text-stone-700 hover:border-stone-300'
                   }`}
                 >
@@ -158,8 +173,8 @@ export default function QuestionsPage() {
           <button
             onClick={handleNext}
             disabled={
-              (question.type === 'multiple_choice' && (!currentAnswer || currentAnswer.length === 0)) ||
-              (question.type === 'single_choice' && !currentAnswer) ||
+              (question.type === 'multi' && (!currentAnswer || currentAnswer.length === 0)) ||
+              (question.type === 'single' && !currentAnswer) ||
               (question.type === 'text' && (!currentAnswer || currentAnswer.trim() === ''))
             }
             className="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-stone-800 rounded-full hover:bg-stone-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
