@@ -6,17 +6,13 @@ import { Loader2, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const [input, setInput] = useState('');
-  const { setDecision, setStep } = useDecision();
   const [isLoading, setIsLoading] = useState(false);
   const { setDecision, setClarification, setStep } = useDecision();
 
-  const handleSubmit = (e: React.FormEvent) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setDecision(input);
-    setStep('questions');
     setIsLoading(true);
     try {
       const result = await generateClarificationAndQuestions(input);
@@ -37,19 +33,6 @@ export default function LandingPage() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', padding: '40px', background: '#fff', color: '#000' }}>
-      <h1>LandingPage 正常</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="输入你的问题"
-          style={{ border: '1px solid #ccc', padding: '8px', width: '300px' }}
-        />
-        <button type="submit" style={{ marginLeft: '12px', padding: '8px 16px' }}>
-          下一步
-        </button>
-      </form>
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
