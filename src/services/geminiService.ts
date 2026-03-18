@@ -44,6 +44,8 @@ export async function generateReflection(
   decision: string,
   answers: Record<string, any>
 ): Promise<ReflectionResponse> {
+  console.log("=== NEW generateReflection 已执行 ===");
+
   const res = await fetch("/api/reflection", {
     method: "POST",
     headers: {
