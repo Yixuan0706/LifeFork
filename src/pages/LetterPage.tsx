@@ -14,7 +14,7 @@ export default function LetterPage() {
 
   const philosophicalClosing = reflection.closing || '愿你在尚未明朗时，也依然温柔而坚定地向前。';
 
-  const futureSelf = `亲爱的此刻的你：
+  const futureSelf = `亲爱的：
 
 我知道，你正在反复思索这个问题：
 
