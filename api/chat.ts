@@ -17,12 +17,12 @@ export default async function handler(req: any, res: any) {
 
     const body =
       typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
-    const message = body.message;
+    const decision = body.decision || body.message;
 
-    if (!message || typeof message !== "string") {
+    if (!decision || typeof decision !== "string") {
       return res.status(400).json({
         success: false,
-        error: "message is required",
+        error: "decison is required",
       });
     }
 
@@ -38,11 +38,16 @@ export default async function handler(req: any, res: any) {
           {
             role: "system",
             content: `
-你是一个人生决策辅助工具。
+你是一个帮助用户梳理复杂人生选择的决策澄清助手。
 
-你的任务是：根据用户提出的人生决定问题，生成：
+你的任务不是直接给建议，而是先帮用户更清楚地看见：
+- 自己已经偏向哪一边
+- 自己真正顾虑的是什么
+- 自己更想成为什么样的人
+
+请根据用户提出的决策问题，生成：
 1. 候选选项 options
-2. 澄清问题 questions
+2. 6 个有层次的澄清问题 questions
 
 你必须严格返回 JSON，格式如下：
 {
@@ -50,40 +55,74 @@ export default async function handler(req: any, res: any) {
   "questions": [
     {
       "id": "q1",
-      "title": "你最在意的是什么？",
-      "type": "text"
+      "title": "问题内容",
+      "type": "single",
+      "options": ["选项1", "选项2"]
     },
     {
       "id": "q2",
-      "title": "你现在更倾向哪个方向？",
+      "title": "问题内容",
       "type": "single",
-      "options": ["方向A", "方向B"]
+      "options": ["选项1", "选项2"]
     },
     {
       "id": "q3",
-      "title": "有哪些现实条件会影响你的决定？",
+      "title": "问题内容",
+      "type": "multi",
+      "options": ["选项1", "选项2", "选项3", "选项4"]
+    },
+    {
+      "id": "q4",
+      "title": "问题内容",
+      "type": "text"
+    },
+    {
+      "id": "q5",
+      "title": "问题内容",
+      "type": "single",
+      "options": ["选项1", "选项2", "选项3", "选项4"]
+    },
+    {
+      "id": "q6",
+      "title": "问题内容",
       "type": "text"
     }
   ]
 }
 
-要求：
+问题设计要求：
+- 一共固定 6 个问题
+- 文本题最多 2 个，不能超过 2 个
+- 题型结构固定为：single、single、multi、text、single、text
+- 问题必须分成三层：
+  1. 偏好层：帮助识别用户已经偏向哪个方向
+  2. 顾虑层：帮助识别用户害怕什么、在犹豫什么
+  3. 身份层：帮助识别用户想成为怎样的人、想过怎样的生活
+- 问题要具体、有区分度，不要空泛
+- 不要像心理测试题
+- 不要使用过于宏大或说教的表述
+- 问题要围绕用户的真实决策，而不是泛泛谈价值观
+
+options 生成要求：
+- 如果用户的问题天然包含两个明显方向，请给出两个最主要的候选选项
+- 如果不止两个方向，也请优先提炼出最核心的两个方向
+- options 要简洁、自然、能直接用于后续判断
+
+额外要求：
 - 只返回合法 JSON
 - 不要返回解释文字
 - 不要返回 markdown
 - 不要返回代码块
-- questions 至少 3 个
 - type 只能是 "text"、"single"、"multi"
-- 如果问题本身只有两个明显选项，也请在 options 中列出来
-            `.trim(),
+`.trim(),
           },
           {
             role: "user",
-            content: message,
+            content: `用户正在思考这个决定：${decision}`,
           },
         ],
         stream: false,
-        temperature: 0.7,
+        temperature: 0.6,
       }),
     });
 
@@ -137,32 +176,33 @@ export default async function handler(req: any, res: any) {
     }
 
     function normalizeQuestions(rawQuestions: any) {
-      if (!Array.isArray(rawQuestions)) return [];
+  if (!Array.isArray(rawQuestions)) return [];
 
-      return rawQuestions.map((item: any, index: number) => {
-        const type =
-          item?.type === "single" ||
-          item?.type === "multi" ||
-          item?.type === "text"
-            ? item.type
-            : "text";
+  return rawQuestions.map((item: any, index: number) => {
+    const type =
+      item?.type === "single" ||
+      item?.type === "multi" ||
+      item?.type === "text"
+        ? item.type
+        : "text";
 
-        return {
-          id: typeof item?.id === "string" ? item.id : `q${index + 1}`,
-          title:
-            typeof item?.title === "string"
-              ? item.title
-              : typeof item?.question === "string"
-              ? item.question
-              : `问题 ${index + 1}`,
-          type,
-          options: Array.isArray(item?.options)
-            ? item.options.filter((v: any) => typeof v === "string")
-            : undefined,
-        };
-      });
-    }
+    const normalizedOptions = Array.isArray(item?.options)
+      ? item.options.filter((v: any) => typeof v === "string")
+      : [];
 
+    return {
+      id: typeof item?.id === "string" ? item.id : `q${index + 1}`,
+      title:
+        typeof item?.title === "string"
+          ? item.title
+          : typeof item?.question === "string"
+          ? item.question
+          : `问题 ${index + 1}`,
+      type,
+      options: type === "text" ? undefined : normalizedOptions,
+    };
+  });
+}
     const parsed = extractJsonFromText(content);
 
     if (!parsed) {
