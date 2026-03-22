@@ -86,14 +86,20 @@ export default async function handler(req: any, res: any) {
           },
           {
             role: "user",
-            content: JSON.stringify(
-              {
-                decision,
-                answers,
-              },
-              null,
-              2
-            ),
+            content: `
+用户正在思考这个问题：
+${decision}
+
+这是他对澄清问题的回答：
+${JSON.stringify(answers, null, 2)}
+
+请基于这些回答，输出 summary、insights、suggestions 和 closing。
+
+重点：
+- 优先识别用户真实在意的东西，而不是表面选项
+- 优先识别犹豫背后的冲突、代价或顾虑
+- 建议要小而具体，不要宏大
+`.trim()
           },
         ],
         stream: false,
