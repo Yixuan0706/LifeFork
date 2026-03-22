@@ -8,9 +8,22 @@ export default function LetterPage() {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!reflection) {
-    setStep('landing');
-    return null;
-  }
+  console.log('[LetterPage] reflection is null');
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-stone-100 px-6">
+      <div className="text-center space-y-4">
+        <p className="text-stone-600">LetterPage 已渲染，但 reflection 为空。</p>
+        <button
+          onClick={() => setStep('landing')}
+          className="px-6 py-2 rounded-full border border-stone-300"
+        >
+          返回首页
+        </button>
+      </div>
+    </div>
+  );
+}
 
   const philosophicalClosing = reflection.closing || '愿你在尚未明朗时，也依然温柔而坚定地向前。';
 
